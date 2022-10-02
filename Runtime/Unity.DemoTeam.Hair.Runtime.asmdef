@@ -54,6 +54,11 @@
             "name": "com.unity.demoteam.mesh-to-sdf",
             "expression": "1.0.0",
             "define": "HAS_PACKAGE_DEMOTEAM_MESHTOSDF"
+        },
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "1.0.0",
+            "define": "HAS_HAIRRENDERER"
         }
     ],
     "noEngineReferences": false

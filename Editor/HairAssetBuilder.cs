@@ -935,8 +935,8 @@ namespace Unity.DemoTeam.Hair
 			}
 
 			// add levels from cluster maps
-			using (var clusterLookupColor = new UnsafeHashMap<Color, int>(strandCount, Allocator.Temp))
-			using (var clusterLookupLabel = new UnsafeHashMap<uint, int>(strandCount, Allocator.Temp))
+			using (var clusterLookupColor = new UnsafeParallelHashMap<Color, int>(strandCount, Allocator.Temp))
+			using (var clusterLookupLabel = new UnsafeParallelHashMap<uint, int>(strandCount, Allocator.Temp))
 			using (var strandCluster = new UnsafeList<int>(strandCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory))
 			{
 				var strandClusterPtr = strandCluster.Ptr;

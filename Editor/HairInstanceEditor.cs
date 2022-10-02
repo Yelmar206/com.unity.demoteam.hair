@@ -120,7 +120,7 @@ namespace Unity.DemoTeam.Hair
 					EditorGUILayout.HelpBox("Configuration warning: Automatic LOD selection not yet implemented.", MessageType.Warning, wide: true);
 				}
 
-				if (hairInstance.settingsSystem.strandRenderer == HairInstance.SettingsSystem.StrandRenderer.HDRPHairRenderer)
+				if (hairInstance.settingsSystem.strandRenderer == HairInstance.SettingsSystem.StrandRenderer.HDRPHighQualityLines)
 				{
 #if HAS_HAIRRENDERER
 					var strandGroupInstances = hairInstance.strandGroupInstances;

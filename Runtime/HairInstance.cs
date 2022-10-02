@@ -81,7 +81,7 @@ namespace Unity.DemoTeam.Hair
 				public MeshFilter strandMeshFilter;
 				public MeshRenderer strandMeshRenderer;
 #if HAS_HAIRRENDERER
-				public HairRenderer strandMeshRendererHDRP;
+				public HDAdditionalMeshRendererSettings strandMeshRendererHDRP;
 #endif
 
 				[NonSerialized] public Material materialInstance;
@@ -148,7 +148,7 @@ namespace Unity.DemoTeam.Hair
 				Disabled,
 				BuiltinLines,
 				BuiltinStrips,
-				HDRPHairRenderer,
+				HDRPHighQualityLines,
 			}
 
 			public enum SimulationRate
@@ -182,12 +182,8 @@ namespace Unity.DemoTeam.Hair
 
 			public StrandRenderer strandRenderer;
 #if HAS_HAIRRENDERER
-			//[VisibleIf(nameof(strandRenderer), StrandRenderer.HDRPHairRenderer)]
-			//public HairRasterizationMode strandRendererMode;
-			[ToggleGroup, VisibleIf(nameof(strandRenderer), StrandRenderer.HDRPHairRenderer)]
-			public bool strandRendererGrouping;
-			[ToggleGroupItem]
-			public HairRendererGroup strandRendererGroupingValue;
+			[VisibleIf(nameof(strandRenderer), StrandRenderer.HDRPHighQualityLines)]
+			public LineRendering.RendererGroup strandRendererGroupingValue;
 #endif
 			public ShadowCastingMode strandShadows;
 			[RenderingLayerMask]
@@ -227,9 +223,7 @@ namespace Unity.DemoTeam.Hair
 
 				strandRenderer = StrandRenderer.BuiltinLines,
 #if HAS_HAIRRENDERER
-				//strandRendererMode = HairRasterizationMode.Performance,
-				strandRendererGrouping = false,
-				strandRendererGroupingValue = HairRendererGroup.Group0,
+				strandRendererGroupingValue = LineRendering.RendererGroup.None,
 #endif
 				strandShadows = ShadowCastingMode.On,
 				strandLayers = 0x0101,//TODO this is the HDRP default -- should decide based on active pipeline asset
@@ -765,7 +759,7 @@ namespace Unity.DemoTeam.Hair
 					}
 				}
 
-				using (var groupAssetKeys = new UnsafeHashSet<ulong>(groupAssetKeyCapacity, Allocator.Temp))
+				using (var groupAssetKeys = new UnsafeParallelHashSet<ulong>(groupAssetKeyCapacity, Allocator.Temp))
 				{
 					for (int i = 0; i != strandGroupSettings.Length; i++)
 					{
@@ -789,7 +783,7 @@ namespace Unity.DemoTeam.Hair
 
 			// map settings to group instances
 #if true
-			using (var groupAssetInstancesMap = new UnsafeMultiHashMap<ulong, int>(strandGroupInstances.Length, Allocator.Temp))
+			using (var groupAssetInstancesMap = new UnsafeParallelMultiHashMap<ulong, int>(strandGroupInstances.Length, Allocator.Temp))
 			{
 				for (int i = 0; i != strandGroupInstances.Length; i++)
 				{
@@ -1049,7 +1043,7 @@ namespace Unity.DemoTeam.Hair
 					materialInstance.SetTexture("_UntypedVolumeVelocity", volumeData.volumeVelocity);
 					materialInstance.SetTexture("_UntypedVolumeStrandCountProbe", volumeData.volumeStrandCountProbe);
 
-					CoreUtils.SetKeyword(materialInstance, "HAIR_VERTEX_ID_LINES", settingsSystem.strandRenderer == SettingsSystem.StrandRenderer.BuiltinLines || settingsSystem.strandRenderer == SettingsSystem.StrandRenderer.HDRPHairRenderer);
+					CoreUtils.SetKeyword(materialInstance, "HAIR_VERTEX_ID_LINES", settingsSystem.strandRenderer == SettingsSystem.StrandRenderer.BuiltinLines || settingsSystem.strandRenderer == SettingsSystem.StrandRenderer.HDRPHighQualityLines);
 					CoreUtils.SetKeyword(materialInstance, "HAIR_VERTEX_ID_STRIPS", settingsSystem.strandRenderer == SettingsSystem.StrandRenderer.BuiltinStrips);
 
 					CoreUtils.SetKeyword(materialInstance, "HAIR_VERTEX_SRC_SOLVER", !settingsStrands.staging);
@@ -1080,7 +1074,7 @@ namespace Unity.DemoTeam.Hair
 						}
 						break;
 
-					case SettingsSystem.StrandRenderer.HDRPHairRenderer:
+					case SettingsSystem.StrandRenderer.HDRPHighQualityLines:
 					case SettingsSystem.StrandRenderer.BuiltinLines:
 						{
 							if (subdivisionCount == 0)
@@ -1127,7 +1121,7 @@ namespace Unity.DemoTeam.Hair
 					var container = strandGroupInstance.sceneObjects.strandMeshContainer;
 					if (container != null && container.TryGetComponent(out meshRendererHDRP) == false)
 					{
-						meshRendererHDRP = strandGroupInstance.sceneObjects.strandMeshRendererHDRP = HairInstanceBuilder.CreateComponent<HairRenderer>(container, container.hideFlags);
+						meshRendererHDRP = strandGroupInstance.sceneObjects.strandMeshRendererHDRP = HairInstanceBuilder.CreateComponent<HDAdditionalMeshRendererSettings>(container, container.hideFlags);
 					}
 				}
 			}
@@ -1155,16 +1149,9 @@ namespace Unity.DemoTeam.Hair
 						break;
 
 #if HAS_HAIRRENDERER
-					case SettingsSystem.StrandRenderer.HDRPHairRenderer:
+					case SettingsSystem.StrandRenderer.HDRPHighQualityLines:
 						{
 							meshRendererHDRP.enabled = meshRendererHDRPEnabled = true;
-							meshRendererHDRP.mesh = meshInstance;
-							meshRendererHDRP.material = materialInstance;
-							//meshRendererHDRP.rasterMode = settingsSystem.strandRendererMode;
-							meshRendererHDRP.shadowCastingMode = settingsSystem.strandShadows;
-							meshRendererHDRP.renderingLayerMask = (uint)settingsSystem.strandLayers;
-							meshRendererHDRP.motionVectorMode = settingsSystem.motionVectors;
-							meshRendererHDRP.groupMerging = settingsSystem.strandRendererGrouping;
 							meshRendererHDRP.rendererGroup = settingsSystem.strandRendererGroupingValue;
 						}
 						break;
@@ -1178,7 +1165,6 @@ namespace Unity.DemoTeam.Hair
 				if (meshRendererHDRPEnabled == false)
 				{
 					meshRendererHDRP.enabled = false;
-					meshRendererHDRP.shadowCastingMode = ShadowCastingMode.Off;
 				}
 #endif
 			}
