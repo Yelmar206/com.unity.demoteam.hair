@@ -1127,45 +1127,15 @@ namespace Unity.DemoTeam.Hair
 			}
 #endif
 			{
-				var meshRendererEnabled = false;
+				meshRenderer.enabled = true;
+				meshRenderer.sharedMaterial = materialInstance;
+				meshRenderer.shadowCastingMode = settingsSystem.strandShadows;
+				meshRenderer.renderingLayerMask = (uint)settingsSystem.strandLayers;
+				meshRenderer.motionVectorGenerationMode = settingsSystem.motionVectors;
+				
 #if HAS_HAIRRENDERER
-				var meshRendererHDRPEnabled = false;
-#endif
-
-				switch (settingsSystem.strandRenderer)
-				{
-#if !HAS_HAIRRENDERER
-					case SettingsSystem.StrandRenderer.HDRPHairRenderer:
-#endif
-					case SettingsSystem.StrandRenderer.BuiltinLines:
-					case SettingsSystem.StrandRenderer.BuiltinStrips:
-						{
-							meshRenderer.enabled = meshRendererEnabled = true;
-							meshRenderer.sharedMaterial = materialInstance;
-							meshRenderer.shadowCastingMode = settingsSystem.strandShadows;
-							meshRenderer.renderingLayerMask = (uint)settingsSystem.strandLayers;
-							meshRenderer.motionVectorGenerationMode = settingsSystem.motionVectors;
-						}
-						break;
-
-#if HAS_HAIRRENDERER
-					case SettingsSystem.StrandRenderer.HDRPHighQualityLines:
-						{
-							meshRendererHDRP.enabled = meshRendererHDRPEnabled = true;
-							meshRendererHDRP.rendererGroup = settingsSystem.strandRendererGroupingValue;
-						}
-						break;
-#endif
-				}
-
-				if (meshRendererEnabled == false)
-					meshRenderer.enabled = false;
-
-#if HAS_HAIRRENDERER
-				if (meshRendererHDRPEnabled == false)
-				{
-					meshRendererHDRP.enabled = false;
-				}
+				meshRendererHDRP.enabled = settingsSystem.strandRenderer == SettingsSystem.StrandRenderer.HDRPHighQualityLines;
+				meshRendererHDRP.rendererGroup = settingsSystem.strandRendererGroupingValue;
 #endif
 			}
 		}
