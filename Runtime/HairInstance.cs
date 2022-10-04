@@ -1134,8 +1134,13 @@ namespace Unity.DemoTeam.Hair
 				meshRenderer.motionVectorGenerationMode = settingsSystem.motionVectors;
 				
 #if HAS_HAIRRENDERER
-				meshRendererHDRP.enabled = settingsSystem.strandRenderer == SettingsSystem.StrandRenderer.HDRPHighQualityLines;
+				meshRendererHDRP.enabled = true;
+				meshRendererHDRP.enableHighQualityLineRendering = settingsSystem.strandRenderer == SettingsSystem.StrandRenderer.HDRPHighQualityLines;
 				meshRendererHDRP.rendererGroup = settingsSystem.strandRendererGroupingValue;
+				
+				// Override the shadow casting mode for HDRP lines. 
+				if (meshRendererHDRP.enableHighQualityLineRendering)
+					meshRenderer.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
 #endif
 			}
 		}
